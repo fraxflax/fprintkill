@@ -7,7 +7,7 @@ BUT now that we have fingerprint readers on almost all laptops I also do want to
 
 __EXAMPLES:__\
 I primarily use the fprintkill from wrapper scripts like __/usr/local/bin/xtrlock__ looking like this:
-```
+```shell
 #!/bin/sh
 EXEC=/usr/bin/xtrlock
 test -x $EXEC || { 
@@ -29,7 +29,7 @@ eval "exec fprintkill $EXEC $ARGS $FORK"
 As I have /usr/local/bin before /usr/bin in my $PATH it serves as a transparent xtrlocker replacement (wrapper). OBSERVE the full path to the "real" xtrlock in the wrapper and that I take care of the '-f' (fork / run as daemon) option! The way the arguments are handled does not forward on arguments containing whitespaces correctly, but that is of no consequence as the only arguments xtrlock supports are '-b' and '-f'.
 
 My __/usr/local/bin/slock__ is slightly simpler as slock does not have options for running it as a daemon, but rather can run some command once locked. Those may contain whitespaces:
-```
+```bash
 #!/bin/sh
 EXEC=/usr/bin/slock
 test -x $EXEC || { 
