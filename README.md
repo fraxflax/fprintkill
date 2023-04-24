@@ -39,3 +39,5 @@ test -x $EXEC || {
 which fprintkill >/dev/null || $EXEC "$@"
 eval "exec fprintkill $EXEC \"$@\""[/CODE]
 ```
+
+Please, see the examples folder for more examples.
