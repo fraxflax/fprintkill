@@ -3,9 +3,10 @@ fprintkill is a simple, pure bourne shell, script that allows you to launch any 
 
 I do like to use simple lightweight screen lockers like xtrlock or slock and have them launched by xautolock. They have low impact on the system and gives me full control to tweak exactly how I like them to work (have wrappers shutting off the screen, additional notify warnings before locking via yad, etc, etc).
 
-BUT now that we have fingerprint readers on almost all laptops I also do want to be able to unlock my computer using that ... which those lockers do not support, not even via libpam-fprintd (which by default in debian sucks anyway as you only have one try using fingerprint before having to type the password), so to fix that dilemma I wrote this small script (with large USAGE and heavily commented to show exactly what it's doing) fixing the problem. It's originally written to be used with xtrlock and/or slock, but you could use it to launch any executable you like and close (kill -TERM) it using your fingerprint :-)
+BUT now that we have fingerprint readers on almost all laptops I also do want to be able to unlock my computer using that ... which those lockers do not support, not even via libpam-fprintd, so to fix that dilemma I wrote this small script fixing the problem.
 
-Myself, I primarily use the script from a wrapper script [B]/usr/local/bin/xtrlock[/B] looking like this:
+EXAMPLES:
+I primarily use the script from wrapper scripts like __/usr/local/bin/xtrlock__ looking like this:
 ```
 #!/bin/sh
 EXEC=/usr/bin/xtrlock
@@ -27,7 +28,7 @@ eval "exec fprintkill $EXEC $ARGS $FORK"
 ```
 As I have /usr/local/bin before /usr/bin in my $PATH it serves as a transparent xtrlocker replacement (wrapper). OBSERVE the full path to the "real" xtrlock in the wrapper and that I take care of the '-f' (fork / run as daemon) option! The way the arguments are handled does not forward on arguments containing whitespaces correctly, but that is of no consequence as the only arguments xtrlock supports are '-b' and '-f'.
 
-My [B]/usr/local/bin/slock[/B] is slightly simpler as slock does not have options for running it as a daemon, but rather can run some command once locked. Those may contain whitespaces:
+My __/usr/local/bin/slock__ is slightly simpler as slock does not have options for running it as a daemon, but rather can run some command once locked. Those may contain whitespaces:
 ```
 #!/bin/sh
 EXEC=/usr/bin/slock
