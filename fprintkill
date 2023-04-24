@@ -1,0 +1,106 @@
+#!/bin/sh
+#
+# fprintkill is a POSIX-compliant (pure bourne shell) script for
+# launching an executable and be able to kill it by reading your
+# fingerprint.
+# 
+# This is free software created by frax@axnet.nu,
+# feel free to use, modify and/or distribute as you see fit.
+# 
+# Known "bug":
+# Fingerprint termination does not work for daemons. Executable must
+# not fork off their main process (but fprintkill itself can of course
+# be run in the background for the same effect).
+# 
+fprintkill=`basename $0`
+USAGE() {
+    COLS=72 ; which tput>/dev/null && COLS=`tput cols`
+    FMT=cat ; which fmt>/dev/null && FMT="fmt -w $COLS"
+    $FMT<<EOU
+
+SYNOPSIS:
+	$fprintkill [ command [ arg ... ] ]
+
+	fprintkill executes the command given the args and for as long
+	as the command is running checks for a successfull fingerprint,
+	upon which the command is terminated.
+
+	The fingerprint termination needs to have 'fprintd-verify' and
+	'pkill' in the PATH (debian: apt install fprintd procps) and
+	DOES NOT WORK FOR DAEMONS (commands that forks off it's main
+	process). You need to prevent the command from doing that,
+	usually given args like --foreground --no-daemon, etc, and
+	instead run fprintkill in the background (&) for the same
+	result.
+
+	If no arguments are given to fprintkill, enviroment variables
+	FPK_EXEC and FPK_ARGS are used.
+
+EXAMPLES:
+	Lock the screen with slock (if within PATH) terminating it
+	upon verified fingerprint:
+	   $fprintkill slock
+
+	Run '/usr/bin/xtrlock -b' in the background (as if it was run
+	by 'xtrlock -f -b') terminating it upon verified fingerprint.
+	   $fprintkill /usr/bin/xtrlock -b &
+
+	Alternative way of doing the xtrlock above:
+	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &
+
+	fprintkill does handle arguments with whitespaces:
+	   $fprintkill slock xterm -e sh -c "echo press ENTER ; read x"
+
+	Alternative way:
+	   env FPK_EXEC=slock FPK_ARGS='xterm -e sh -c "echo press ENTER ; read x"' $fprintkill
+
+EOU
+    exit 1
+}
+
+test -n "$1" && {
+    FPK_EXEC="$1"
+    FPK_ARGS=
+    n=2
+    while eval "test -n \"\$$n\""; do
+	eval "FPK_ARGS=\"$FPK_ARGS '\$$n'\""
+	n=$((n+1))
+    done
+}
+which "$FPK_EXEC">/dev/null || test -x "$FPK_EXEC" || USAGE
+
+# The process id of $FPK_EXEC (once we do the exec below)
+xpid=$$
+
+# process group id (pgid) that will help us kill fprintd-verify and
+# wrapper children if (forked) $EXECUTABLE is terminated by other
+# means than by fingerprint (e.g. by typing password in locker).
+pgid=`ps -h --pid $$ -opgid` 
+
+# if 'fprintd-verify' and 'pkill' are executable in path
+# we fork off two proccesses,
+# the inner: terminating the executable upon verified fingerprint,
+# the outer: killing potentially remaining fprintd-verify processes
+# (if the exec exited by some other mean than after fprintd-verify).
+which fprintd-verify >/dev/null && which pkill >/dev/null && \
+{
+    sleep 0.5 # allow exec below to launch
+
+    # Fork & do fprintd-verify for as long as executable still alive
+    while ps -h -opid $xpid >/dev/null; do
+	fprintd-verify -f any && {
+	    kill -TERM $xpid
+	    exit 0
+	}
+    done &
+
+    # Check every 10:th second if executable is still alive
+    while ps -h -opid $xpid >/dev/null; do sleep 10; done 
+
+    # Kill potentially remaining fprintd-verify children 
+    pkill -TERM -g $pgid fprintd-verify
+    exit 0
+    
+}>/dev/null 2>&1 & # dismiss output from fprintd-verify
+
+eval "exec '$FPK_EXEC' $FPK_ARGS"
