@@ -1,0 +1,8 @@
+#!/bin/sh
+EXEC=/usr/bin/slock
+test -x $EXEC || { 
+    echo "Executable '$EXEC' not present!" >/dev/stderr
+    exit 1
+}
+which fprintkill >/dev/null || $EXEC "$@"
+eval "exec fprintkill $EXEC \"$@\""

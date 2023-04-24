@@ -1,0 +1,17 @@
+#!/bin/sh
+EXEC=/usr/bin/xtrlock
+test -x $EXEC || { 
+    echo "Executable '$EXEC' not present!" >/dev/stderr
+    exit 1
+}
+which fprintkill >/dev/null || $EXEC "$@"
+FORK=
+ARGS=
+for arg in $@; do
+    if [ "$arg" = "-f" ]; then
+	FORK='&'
+    else
+	ARGS="$ARGS $arg"
+    fi
+done
+eval "exec fprintkill $EXEC $ARGS $FORK"
