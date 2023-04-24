@@ -28,7 +28,7 @@ eval "exec fprintkill $EXEC $ARGS $FORK"
 ```
 As I have /usr/local/bin before /usr/bin in my $PATH it serves as a transparent xtrlocker replacement (wrapper). OBSERVE the full path to the "real" xtrlock in the wrapper and that I take care of the '-f' (fork / run as daemon) option! The way the arguments are handled does not forward on arguments containing whitespaces correctly, but that is of no consequence as the only arguments xtrlock supports are '-b' and '-f'.
 
-My __/usr/local/bin/slock__ is slightly simpler since slock does not have options for running as a daemon, however it has the option to some command once locked, so we need to handle potential whitespaces in the arguments:
+Since, slock does not have options for running as a daemon, my __/usr/local/bin/slock__ is slightly simpler. However does slock have the option to run (fork) a command once locked, so we need to handle potential whitespaces in the arguments:
 ```shell
 #!/bin/sh
 EXEC=/usr/bin/slock
