@@ -1,0 +1,51 @@
+#!/bin/sh
+if [ "`tty | cut -c-8`" = "/dev/tty" ]; then
+    # we are on "real" console even though X might be running and DISPLAY is set
+    if which physlock >/dev/null; then 
+	physlock -sm || { C=$?; echo 'fraxlock ERROR! "physlock -sm" failed!' >/dev/stderr; exit $? ;}
+    elif which vlock >/dev/null; then
+	vlock -a || { C=$?; echo 'fraxlock ERROR! "vlock -a" failed!' >/dev/stderr; exit $? ;}
+	echo 'fraxlock WARNING! For full functionality: [ apt install physlock ]' >/dev/stderr
+    else
+	echo 'fraxlock ERROR! No executable console locker in path! [ apt install physlock vlock ]' >/dev/stderr
+	exit 1
+    fi
+elif [ -n "$DISPLAY" ]; then  
+    test -z "$XSCREENLOCKER" && {
+	if [ -x /usr/bin/xtrlock ] && which fprintkill >/dev/null; then
+	    XSCREENLOCKER="fprintkill /usr/bin/xtrlock -b"
+	elif [ -x /usr/bin/slock ] && which fprintkill >/dev/null; then
+	    XSCREENLOCKER="fprintkill /usr/bin/slock"
+	elif which xtrlock >/dev/null; then
+	    XSCREENLOCKER="xtrlock -b"
+	elif which slock >/dev/null; then
+	    XSCREENLOCKER="slock"
+	elif which physlock >/dev/null; then
+	    XSCREENLOCKER="physlock -L ; physlock -sm";
+	else
+	    yad --center --splash --on-top --button="OK:252" --text='<b>fraxlock ERROR!</b>\n\nNo X screen locker found!\n\napt install physlock slock xtrlock' 2>/dev/null \
+		|| notify-send -t 10000 'fraxlock ERROR!' 'No X screen locker found!\napt install physlock slock xtrlock yad' 2>/dev/null \
+		|| echo 'fraxlock ERROR! No X screen locker found! [ apt install physlock slock xtrlock yad libnotify-bin ]' >/dev/stderr
+	    exit 1
+	fi
+	export XSCREENLOCKER
+    }
+    # Blank and turn screen off
+    (xset s blank ; sleep 3 ; xset s activate ; xset dpms force off ) 2>/dev/null &
+
+    which physlock >/dev/null && physlock -l
+    eval "$XSCREENLOCKER"
+    if which physlock >/dev/null; then
+	physlock -L
+    else 
+	yad --center --splash --on-top --button="OK:252" --text='<b>fraxlock WARNING!\n\napt install physlock</b>\nfor full functionality!' 2>/dev/null \
+	    || notify-send -t 10000 'fraxlock WARNING!' 'apt install physlock yad\nfor full functionality' 2>/dev/null \
+	    || echo 'fraxlock WARNING! [ apt install physlock yad libnotify-bin ] for full functionality!' >/dev/stderr
+    fi
+    # Wake and "unblank" screens (fingerprint reader might not be noticed as non-idle activity)
+    (xset dpms force on ; xset s noblank ; xset s activate ; xset s blank) 2>/dev/null &
+else
+    # on non-console terminal without X DISPLAY... just trying to lock the terminal
+    which vlock >/dev/null || { echo 'fraxlock ERROR! No executable vlock! [ apt install vlock ]' >/dev/stderr; exit 1;}
+    vlock || { C=$?; echo 'fraxlock ERROR! "vlock" failed!' >/dev/stderr; exit $? ;}
+fi
