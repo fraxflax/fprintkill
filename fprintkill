@@ -12,7 +12,7 @@
 # not fork off their main process (but fprintkill itself can of course
 # be run in the background for the same effect).
 # 
-fprintkill=`basename $0`
+fprintkill="`basename "$0" 2>/dev/null`" || fprintkill="fprintkill"
 USAGE() {
     COLS=72 ; which tput>/dev/null && COLS=`tput cols`
     FMT=cat ; which fmt>/dev/null && FMT="fmt -w $COLS"
