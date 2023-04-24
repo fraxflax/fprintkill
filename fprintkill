@@ -67,7 +67,7 @@ test -n "$1" && {
 	n=$((n+1))
     done
 }
-which "$FPK_EXEC">/dev/null || test -x "$FPK_EXEC" || USAGE
+which "$FPK_EXEC">/dev/null 2>&1 || test -x "$FPK_EXEC" || USAGE
 
 # The process id of $FPK_EXEC (once we do the exec below)
 xpid=$$
