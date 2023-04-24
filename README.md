@@ -6,7 +6,7 @@ I do like to use simple lightweight screen lockers like xtrlock or slock and hav
 BUT now that we have fingerprint readers on almost all laptops I also do want to be able to unlock my computer using that ... which those lockers do not support, not even via libpam-fprintd, so to fix that dilemma I wrote this small script fixing the problem.
 
 __EXAMPLES:__\
-I primarily use the fprintkill in a wrapper scripts __/usr/local/bin/xtrlock__:
+I primarily use the fprintkill in a wrapper script __/usr/local/bin/xtrlock__:
 ```shell
 #!/bin/sh
 EXEC=/usr/bin/xtrlock
