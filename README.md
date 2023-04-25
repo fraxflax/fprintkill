@@ -56,7 +56,7 @@ __SCRIPT EXAMPLES:__ <br/>
 I primarily use fprintkill in a "wrapper" scripts, e.g __/usr/local/bin/slock__
 ```shell
 #!/bin/sh
-EXEC=/usr/bin/slock
+EXEC=/usr/bin/xtrlock
 test -x $EXEC || { 
     echo "Executable '$EXEC' not present!" >/dev/stderr
     exit 1
