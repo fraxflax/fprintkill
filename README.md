@@ -61,7 +61,7 @@ test -x $EXEC || {
     echo "Executable '$EXEC' not present!" >/dev/stderr
     exit 1
 }
-which fprintkill >/dev/null || $EXEC "$@"
+which fprintkill >/dev/null || exec $EXEC "$@"
 eval "exec fprintkill $EXEC \"$@\""
 ```
 having /usr/local/bin preceed /usr/bin in my path the script becomes a transparent wrapper for slock allowing me to unlock using fingerprint.
