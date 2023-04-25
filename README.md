@@ -40,4 +40,5 @@ which fprintkill >/dev/null || $EXEC "$@"
 eval "exec fprintkill $EXEC \"$@\""
 ```
 
-Please, see the examples folder for more examples.
+Please, see the examples folder for more examples:\
+https://github.com/fraxflax/fprintkill/tree/main/examples
