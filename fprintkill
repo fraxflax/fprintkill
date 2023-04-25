@@ -113,20 +113,16 @@ else
     sleep 1 # allow cmd to launch and possibly become a daemon
 
     ps -opid= $xpid >/dev/null 2>&1 || { # cmd has exited 
-	# get pid of first daemon process if cmd forked
+	# get pids daemon forked off processes
 	GPIDS=`pgrep -g $pgid`
-	echo
-	echo GPIDS=$GPIDS
-	cpids=`echo $GPIDS | sed -E 's/[^ ]+ //'`
-	echo cpids=$gpids
+	cpids=`echo $GPIDS | sed -E 's/[^ ]+ //'` # (first pid is me)
 	test "$cpids" = "$GPIDS" || xpid=$cpids
-	echo xpid=$xpid
     }
 	
     # Fork & do fprintd-verify for as long as executable still alive
     while ps -opid= $xpid >/dev/null; do
-	fprintd-verify -f any && {
-	    pkill -TERM -g $pgid
+	fprintd-verify -f any >/dev/null 2>&1 && {
+	    pkill -TERM -g $pgid >/dev/null 2>&1
 	    exit 0
 	}
     done &
@@ -135,7 +131,7 @@ else
     while ps -opid= $xpid >/dev/null; do sleep 10; done 
     
     # Kill potentially remaining children 
-    pkill -TERM -g $pgid
+    pkill -TERM -g $pgid >/dev/null 2>&1
     exit 0
 fi &
 
