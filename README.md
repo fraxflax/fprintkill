@@ -53,7 +53,7 @@ all exits fprintkill will clean up. Upon verified fingerprint, proc1, proc2 and 
 
 __SCRIPT EXAMPLES:__ <br/>
 
-I primarily use fprintkill in a "wrapper" scripts, e.g __/usr/local/bin/slock__
+I primarily use fprintkill in a "wrapper" scripts, e.g __/usr/local/bin/xtrlock__
 ```shell
 #!/bin/sh
 EXEC=/usr/bin/xtrlock
