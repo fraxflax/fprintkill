@@ -64,7 +64,7 @@ test -x $EXEC || {
 which fprintkill >/dev/null || exec $EXEC "$@"
 eval "exec fprintkill $EXEC \"$@\""
 ```
-having /usr/local/bin preceed /usr/bin in my path the script becomes a transparent wrapper for slock allowing me to unlock using fingerprint.
+having /usr/local/bin preceed /usr/bin in my path the script becomes a transparent wrapper for xtrlock allowing me to unlock using fingerprint.
 
 Please, see the examples folder for more examples:\
 https://github.com/fraxflax/fprintkill/tree/main/examples
