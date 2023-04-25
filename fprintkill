@@ -8,6 +8,7 @@
 # feel free to use, modify and/or distribute as you see fit.
 # 
 fprintkill="`basename "$0" 2>/dev/null`" || fprintkill="fprintkill"
+DEPS="fprintd-verify pgrep pkill ps sed setsid" 
 USAGE() {
     COLS=72; ___=''; __=''; which tput>/dev/null && { COLS=`tput cols`; ___=`tput bold`; __=`tput sgr0`; }
     FMT=cat;which fmt>/dev/null && FMT="fmt -w $COLS"
@@ -20,10 +21,11 @@ ${___}SYNOPSIS:
 	upon successfull fingerprint verify, cmd is terminated.
 
 	The fingerprint termination depends on 'fprintd-verify',
-	'pkill' and 'setsid' (debian: apt install fprintd procps
-	util-linux). If they are not found, a warning will be printed
-	to stderr but the cmd will still be launched, but cannot be
-	killed by fingerprint.
+	'pgrep', 'pkill', 'ps', 'sed' and 'setsid'. If they are not
+	found, a warning will be printed to stderr but the cmd will
+	still be launched, even though it cannot be killed by
+	fingerprint. (To satisfy the dependencies in Debian/Ubuntu:
+	apt install util-linux procps sed fprintd util-linux).
 
 	If no arguments are given to fprintkill, enviroment variables
 	FPK_EXEC and FPK_ARGS are used for cmd [ arg ...]
@@ -33,18 +35,34 @@ ${___}EXAMPLES:$__
 	upon verified fingerprint:
 	   $fprintkill slock
 
-	Run '/usr/bin/xtrlock -b' in the background (as if it was run
-	by 'xtrlock -f -b') terminating it upon verified fingerprint.
+	Run '/usr/bin/xtrlock -b' in the background terminating it
+	upon verified fingerprint:
 	   $fprintkill /usr/bin/xtrlock -b &
 
-	Alternative way of doing the xtrlock above:
+	Alternative using environment variables:
 	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &
 
-	fprintkill does handle arguments with whitespaces:
-	   $fprintkill sh -c "xset dpms force off ; xtrlock"
+	Arguments with whitespaces are ok:
+	   $fprintkill sh -c "xset dpms force off ; xtrlock" &
 
-	Alternative way:
-	   env FPK_EXEC=sh FPK_ARGS='-c "xset dpms force off ; xtrlock"' $fprintkill
+	Alternative using environment variables:
+	   env FPK_EXEC=sh FPK_ARGS='-c  "xset dpms force off ; xtrlock"' &
+
+	Also daemons are properly handled.  To launch xtrlock in the
+	background as a daemon that will be terminated upon verified
+	fingerprint:
+	   $fprintkill xtrlock -f
+
+	In the case a daemon forks off several parallel processes
+	before exiting, all of those will be monitored and terminated
+	upon verified fingerprint. Cleanup will not be performed
+	before all of the parallell processes have exited or have been
+	terminated. In this example, if proc1 exits, fprintkill will
+	keep monitoring proc2 and proc3. If proc1, proc2 and proc3 all
+	exits fprintkill will clean up. Upon verified fingerprint,
+	proc1, proc2 and proc3 (and their child processes, if any)
+	will be terminated:
+	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
 
 EOU
     exit 1
@@ -67,7 +85,6 @@ xpid=$$
 pgid=`ps -opgid= $xpid` || { echo "ERROR: ps: $!" > /dev/stderr; exit 1 ;}
 
 # Check dependencies for fingerprint killing
-DEPS="setsid ps sed fprintd-verify pgrep pkill"
 lacking=
 for x in $DEPS; do which $x>/dev/null || lacking="$lacking $x"; done
 if [ -n "$lacking" ]; then
@@ -96,10 +113,14 @@ else
     sleep 1 # allow cmd to launch and possibly become a daemon
 
     ps -opid= $xpid >/dev/null 2>&1 || { # cmd has exited 
-	# get daemon pid if cmd forked
-	PIDS=`pgrep -g $pgid`
-	pid=`echo $PIDS | sed -E 's/.* //'`
-	test "$pid" = "$PIDS" || xpid=$pid
+	# get pid of first daemon process if cmd forked
+	GPIDS=`pgrep -g $pgid`
+	echo
+	echo GPIDS=$GPIDS
+	cpids=`echo $GPIDS | sed -E 's/[^ ]+ //'`
+	echo cpids=$gpids
+	test "$cpids" = "$GPIDS" || xpid=$cpids
+	echo xpid=$xpid
     }
 	
     # Fork & do fprintd-verify for as long as executable still alive
