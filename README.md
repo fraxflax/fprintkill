@@ -23,7 +23,7 @@ enviroment variables FPK_EXEC and FPK_ARGS are used for cmd [ arg ...]
 
 __EXAMPLES:__ <br/>
 
-Lock the screen with slock (if within PATH) terminating it upon verified fingerprint:
+Lock the screen with slock, terminating it upon verified fingerprint:
 > fprintkill slock
 
 Run '/usr/bin/xtrlock -b' in the background terminating it upon verified fingerprint:
