@@ -51,7 +51,8 @@ all exits fprintkill will clean up. Upon verified fingerprint, proc1, proc2 and 
 > fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
 
 
-__SCRIPT EXAMPLES:__
+__SCRIPT EXAMPLES:__ <br/>
+
 I primarily use fprintkill in a "wrapper" scripts, e.g __/usr/local/bin/slock__
 ```shell
 #!/bin/sh
