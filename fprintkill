@@ -7,36 +7,28 @@
 # This is free software created by frax@axnet.nu,
 # feel free to use, modify and/or distribute as you see fit.
 # 
-# Known "bug":
-# Fingerprint termination does not work for daemons. Executable must
-# not fork off their main process (but fprintkill itself can of course
-# be run in the background for the same effect).
-# 
 fprintkill="`basename "$0" 2>/dev/null`" || fprintkill="fprintkill"
 USAGE() {
-    COLS=72 ; which tput>/dev/null && COLS=`tput cols`
-    FMT=cat ; which fmt>/dev/null && FMT="fmt -w $COLS"
+    COLS=72; ___=''; __=''; which tput>/dev/null && { COLS=`tput cols`; ___=`tput bold`; __=`tput sgr0`; }
+    FMT=cat;which fmt>/dev/null && FMT="fmt -w $COLS"
     $FMT<<EOU
 
-SYNOPSIS:
-	$fprintkill [ command [ arg ... ] ]
+${___}SYNOPSIS:
+	$fprintkill$__ [ cmd [ arg ...] ]
 
-	fprintkill executes the command given the args and for as long
-	as the command is running checks for a successfull fingerprint,
-	upon which the command is terminated.
+	Executes cmd [ arg ...] and for as long as cmd is running,
+	upon successfull fingerprint verify, cmd is terminated.
 
-	The fingerprint termination needs to have 'fprintd-verify' and
-	'pkill' in the PATH (debian: apt install fprintd procps) and
-	DOES NOT WORK FOR DAEMONS (commands that forks off it's main
-	process). You need to prevent the command from doing that,
-	usually given args like --foreground --no-daemon, etc, and
-	instead run fprintkill in the background (&) for the same
-	result.
+	The fingerprint termination depends on 'fprintd-verify',
+	'pkill' and 'setsid' (debian: apt install fprintd procps
+	util-linux). If they are not found, a warning will be printed
+	to stderr but the cmd will still be launched, but cannot be
+	killed by fingerprint.
 
 	If no arguments are given to fprintkill, enviroment variables
-	FPK_EXEC and FPK_ARGS are used.
+	FPK_EXEC and FPK_ARGS are used for cmd [ arg ...]
 
-EXAMPLES:
+${___}EXAMPLES:$__
 	Lock the screen with slock (if within PATH) terminating it
 	upon verified fingerprint:
 	   $fprintkill slock
@@ -49,15 +41,14 @@ EXAMPLES:
 	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &
 
 	fprintkill does handle arguments with whitespaces:
-	   $fprintkill slock xterm -e sh -c "echo press ENTER ; read x"
+	   $fprintkill sh -c "xset dpms force off ; xtrlock"
 
 	Alternative way:
-	   env FPK_EXEC=slock FPK_ARGS='xterm -e sh -c "echo press ENTER ; read x"' $fprintkill
+	   env FPK_EXEC=sh FPK_ARGS='-c "xset dpms force off ; xtrlock"' $fprintkill
 
 EOU
     exit 1
 }
-
 test -n "$1" && {
     FPK_EXEC="$1"
     FPK_ARGS=
@@ -69,38 +60,63 @@ test -n "$1" && {
 }
 which "$FPK_EXEC">/dev/null 2>&1 || test -x "$FPK_EXEC" || USAGE
 
-# The process id of $FPK_EXEC (once we do the exec below)
+# The process id of cmd (once exec)
 xpid=$$
 
-# process group id (pgid) that will help us kill fprintd-verify and
-# wrapper children if (forked) $EXECUTABLE is terminated by other
-# means than by fingerprint (e.g. by typing password in locker).
-pgid=`ps -h --pid $$ -opgid` 
+# Process group
+pgid=`ps -opgid= $xpid` || { echo "ERROR: ps: $!" > /dev/stderr; exit 1 ;}
 
-# if 'fprintd-verify' and 'pkill' are executable in path
-# we fork off two proccesses,
-# the inner: terminating the executable upon verified fingerprint,
-# the outer: killing potentially remaining fprintd-verify processes
-# (if the exec exited by some other mean than after fprintd-verify).
-which fprintd-verify >/dev/null && which pkill >/dev/null && \
-{
-    sleep 0.5 # allow exec below to launch
+# Check dependencies for fingerprint killing
+DEPS="setsid ps sed fprintd-verify pgrep pkill"
+lacking=
+for x in $DEPS; do which $x>/dev/null || lacking="$lacking $x"; done
+if [ -n "$lacking" ]; then
+    cat<<EOW>/dev/stderr
 
+WARNING!
+
+The following executables are lacking in your PATH:
+$lacking
+preventing fingerprint killing from being performed.
+
+The full depencies (apart from coreutils) for fingerprint kill are:
+$DEPS
+
+(in debian/ubuntu: apt install util-linux procps sed fprintd )
+
+EOW
+else
+    # Ensure we have a separate process group
+    test $xpid -eq $pgid || { setsid --fork $0 "$@"; exit 0; }
+
+    # Fork off two proccesses,
+    # the inner: terminating the executable upon verified fingerprint,
+    # the outer: killing potentially remaining fprintd-verify processes
+    # (if the exec exited by some other mean than after fprintd-verify).
+
+    sleep 1 # allow cmd to launch and possibly become a daemon
+
+    ps -opid= $xpid >/dev/null 2>&1 || { # cmd has exited 
+	# get daemon pid if cmd forked
+	PIDS=`pgrep -g $pgid`
+	pid=`echo $PIDS | sed -E 's/.* //'`
+	test "$pid" = "$PIDS" || xpid=$pid
+    }
+	
     # Fork & do fprintd-verify for as long as executable still alive
-    while ps -h -opid $xpid >/dev/null; do
+    while ps -opid= $xpid >/dev/null; do
 	fprintd-verify -f any && {
-	    kill -TERM $xpid
+	    pkill -TERM -g $pgid
 	    exit 0
 	}
     done &
-
+	
     # Check every 10:th second if executable is still alive
-    while ps -h -opid $xpid >/dev/null; do sleep 10; done 
-
-    # Kill potentially remaining fprintd-verify children 
-    pkill -TERM -g $pgid fprintd-verify
-    exit 0
+    while ps -opid= $xpid >/dev/null; do sleep 10; done 
     
-}>/dev/null 2>&1 & # dismiss output from fprintd-verify
+    # Kill potentially remaining children 
+    pkill -TERM -g $pgid
+    exit 0
+fi &
 
 eval "exec '$FPK_EXEC' $FPK_ARGS"
