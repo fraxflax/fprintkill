@@ -76,12 +76,11 @@ if [ -n "$lacking" ]; then
 WARNING!
 
 The following executables are lacking in your PATH:
-$lacking
+ $lacking
 preventing fingerprint killing from being performed.
 
 The full depencies (apart from coreutils) for fingerprint kill are:
-$DEPS
-
+  $DEPS
 (in debian/ubuntu: apt install util-linux procps sed fprintd )
 
 EOW
