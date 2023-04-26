@@ -53,15 +53,15 @@ ${___}EXAMPLES:$__
 	fingerprint:
 	   $fprintkill xtrlock -f
 
-	In the case a daemon forks off several parallel processes
-	before exiting, all of those will be monitored and terminated
-	upon verified fingerprint. Cleanup will not be performed
-	before all of the parallell processes have exited or have been
-	terminated. In this example, if proc1 exits, fprintkill will
-	keep monitoring proc2 and proc3. If proc1, proc2 and proc3 all
-	exits fprintkill will clean up. Upon verified fingerprint,
-	proc1, proc2 and proc3 (and their child processes, if any)
-	will be terminated:
+	In the case the cmd is a daemon spawning several parallel
+	processes (spawn) before exiting, all of the spawn will be
+	monitored and terminated upon verified fingerprint. Cleanup
+	will not be performed before all of the parallell processes
+	have exited or have been terminated. In this example, if proc1
+	exits, fprintkill will keep monitoring proc2 and proc3. If
+	proc1, proc2 and proc3 all exits fprintkill will clean
+	up. Upon verified fingerprint, proc1, proc2 and proc3 (and
+	their child processes, if any) will be terminated:
 	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
 
 EOU
@@ -78,16 +78,9 @@ test -n "$1" && {
 }
 which "$FPK_EXEC">/dev/null 2>&1 || test -x "$FPK_EXEC" || USAGE
 
-# The process id of cmd (once exec)
-xpid=$$
-
-# Process group
-pgid=`ps -opgid= $xpid` || { echo "ERROR: ps: $!" > /dev/stderr; exit 1 ;}
-
-# Check dependencies for fingerprint killing
 lacking=
 for x in $DEPS; do which $x>/dev/null || lacking="$lacking $x"; done
-if [ -n "$lacking" ]; then
+test -n "$lacking" && {
     cat<<EOW>/dev/stderr
 
 WARNING!
@@ -101,25 +94,36 @@ The full depencies (apart from coreutils) for fingerprint kill are:
 (in debian/ubuntu: apt install util-linux procps sed fprintd )
 
 EOW
-else
-    # Ensure we have a separate process group
-    test $xpid -eq $pgid || { setsid --fork $0 "$@"; exit 0; }
 
-    # Fork off two proccesses,
-    # the inner: terminating the executable upon verified fingerprint,
-    # the outer: killing potentially remaining fprintd-verify processes
-    # (if the exec exited by some other mean than after fprintd-verify).
+    eval "exec '$FPK_EXEC' $FPK_ARGS"
+}
 
-    sleep 1 # allow cmd to launch and possibly become a daemon
+
+# The process id of cmd (exec below)
+xpid=$$
+
+# Process group
+pgid=`ps -opgid= $xpid` || { echo "ERROR: ps: $!" > /dev/stderr; exit 1 ;}
+
+# Ensure we have a separate process group with $xpid as root
+test $xpid -eq $pgid || exec setsid sh $0 "$@"
+
+
+{   # --- Fork twice ---
+    # Inner fork: Terminate cmd (or daemon spawn) upon verified fingerprint,
+    # Outer fork: Kill potentially remaining processes (e.g. fprintd-verify)
+    #             once the cmd (or daemon spawn) has exited / been terminated
+
+    sleep 1 # allow cmd to launch (and possibly become a daemon)
 
     ps -opid= $xpid >/dev/null 2>&1 || { # cmd has exited 
-	# get pids daemon forked off processes
+	# get pids of daemon spawn
 	GPIDS=`pgrep -g $pgid`
-	cpids=`echo $GPIDS | sed -E 's/[^ ]+ //'` # (first pid is me)
+	cpids=`echo $GPIDS | sed -E 's/[^ ]+ //'` # (first pid is `self`)
 	test "$cpids" = "$GPIDS" || xpid=$cpids
     }
 	
-    # Fork & do fprintd-verify for as long as executable still alive
+    # Fork & do fprintd-verify for as long as cmd or spawn still alive
     while ps -opid= $xpid >/dev/null; do
 	fprintd-verify -f any >/dev/null 2>&1 && {
 	    pkill -TERM -g $pgid >/dev/null 2>&1
@@ -127,12 +131,12 @@ else
 	}
     done &
 	
-    # Check every 10:th second if executable is still alive
-    while ps -opid= $xpid >/dev/null; do sleep 10; done 
-    
-    # Kill potentially remaining children 
+    # Monitoring: Every 5:th second, check if cmd (or spawn) is still alive
+    while ps -opid= $xpid >/dev/null; do sleep 5; done 
+
+    # Cleanup: Kill potentially remaining children 
     pkill -TERM -g $pgid >/dev/null 2>&1
     exit 0
-fi &
+}&
 
 eval "exec '$FPK_EXEC' $FPK_ARGS"
