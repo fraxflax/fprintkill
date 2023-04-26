@@ -7,7 +7,7 @@ BUT now that we have fingerprint readers on almost all laptops I also do want to
 
 __SYNOPSIS:__ <br/>
 
-> __fprintkill__ [ cmd [ arg ...] ]
+`__fprintkill__ [ cmd [ arg ...] ]`
 
 Executes cmd [ arg ...] and for as long as cmd is running, 
 upon successfull fingerprint verify, cmd is terminated.
