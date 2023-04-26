@@ -7,7 +7,7 @@ BUT now that we have fingerprint readers on almost all laptops I also do want to
 
 __SYNOPSIS:__ <br/>
 
-`__fprintkill__ [ cmd [ arg ...] ]`
+`fprintkill [ cmd [ arg ...] ]`
 
 Executes cmd [ arg ...] and for as long as cmd is running, 
 upon successfull fingerprint verify, cmd is terminated.
@@ -24,25 +24,25 @@ enviroment variables FPK_EXEC and FPK_ARGS are used for cmd [ arg ...]
 __EXAMPLES:__ <br/>
 
 Lock the screen with slock, terminating it upon verified fingerprint:
-> fprintkill slock
+`fprintkill slock`
 
 Run '/usr/bin/xtrlock -b' in the background terminating it upon verified fingerprint:
-> fprintkill /usr/bin/xtrlock -b &
+`fprintkill /usr/bin/xtrlock -b &`
 
 Alternative using environment variables:
-> env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b fprintkill &
+`env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b fprintkill`
 
 Arguments with whitespaces are ok:
-> fprintkill sh -c "xset dpms force off ; xtrlock" &
+`fprintkill sh -c "xset dpms force off ; xtrlock"`
 
 Alternative using environment variables:
-> env FPK_EXEC=sh FPK_ARGS='-c  "xset dpms force off ; xtrlock"' &
+`env FPK_EXEC=sh FPK_ARGS='-c  "xset dpms force off ; xtrlock"'`
 
 Also daemons are properly handled.  To launch xtrlock in the background as a daemon that will be terminated upon verified fingerprint:
-> fprintkill xtrlock -f
+`fprintkill xtrlock -f`
 
 In the case the cmd is a daemon spawning several parallel processes (spawn) before exiting, all of the spawn will be monitored and terminated upon verified fingerprint. Cleanup will not be performed before all of the parallell processes have exited or have been terminated. In this example, if proc1 exits, fprintkill will keep monitoring proc2 and proc3. If proc1, proc2 and proc3 all exits fprintkill will clean up. Upon verified fingerprint, proc1, proc2 and proc3 (and their child processes, if any) will be terminated:
-> fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
+`fprintkill sh -c "proc1 & proc2 & proc3 & exit 0`
 
 
 __SCRIPT EXAMPLES:__ <br/>
