@@ -30,9 +30,10 @@ elif [ -n "$DISPLAY" ]; then
 	fi
 	export XSCREENLOCKER
     }
-    # Blank and turn screen off
-    (xset s blank ; sleep 3 ; xset s activate ; xset dpms force off ) 2>/dev/null &
+    # Shorten values for blanking and screens off
+    (xset s blank; xset s 15; xset +dpms; xset dpms 60 60 60; sleep 3; xset s activate) 2>/dev/null &
 
+    # Disable VT-switching & Lock screen 
     which physlock >/dev/null && physlock -l
     eval "$XSCREENLOCKER"
     if which physlock >/dev/null; then
@@ -42,8 +43,9 @@ elif [ -n "$DISPLAY" ]; then
 	    || notify-send -t 10000 'fraxlock WARNING!' 'apt install physlock yad\nfor full functionality' 2>/dev/null \
 	    || echo 'fraxlock WARNING! [ apt install physlock yad libnotify-bin ] for full functionality!' >/dev/stderr
     fi
-    # Wake and "unblank" screens (fingerprint reader might not be noticed as non-idle activity)
-    (xset dpms force on ; xset s noblank ; xset s activate ; xset s blank) 2>/dev/null &
+    
+    # Wake & reset screens, reset values (fingerprint reader might not be noticed as non-idle activity)
+    (xset dpms force on ; xset s reset ; xset +dpms ; xset dpms 900 900 900 ; xset s 720 ; xset s blank) 2>/dev/null &
 else
     # on non-console terminal without X DISPLAY... just trying to lock the terminal
     which vlock >/dev/null || { echo 'fraxlock ERROR! No executable vlock! [ apt install vlock ]' >/dev/stderr; exit 1;}
