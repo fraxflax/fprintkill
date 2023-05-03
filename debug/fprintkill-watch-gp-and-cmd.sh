@@ -8,7 +8,7 @@ mycomm=`basename $0 | cut -c-15`
 
 
 fprintkill=fprintkill
-for f in "`dirname $0`/..fprintkill" "`dirname $0`/fprintkill.debug" ./fprintkill.debug; do
+for f in "`dirname $0`/../fprintkill" "`dirname $0`/fprintkill.debug" ./fprintkill.debug; do
     test -r "$f" && fprintkill="$f";
 done
 FPK_EXEC="$2" ; export FPK_EXEC
