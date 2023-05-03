@@ -31,7 +31,9 @@ elif [ -n "$DISPLAY" ]; then
 	export XSCREENLOCKER
     }
     # Shorten values for blanking and screens off
-    (xset s blank; xset s 15; xset +dpms; xset dpms 60 60 60; sleep 3; xset s activate) 2>/dev/null &
+    blanktimeout=`xset q dpms | grep -A999 'Screen Saver:' | grep timeout: | sed -E 's/.*timeout:\s*([0-9]+).*/\1/'` || blanktimeout=666
+    offtimeout=
+    (xset s blank; xset s 15; xset +dpms; xset dpms 0 0 30; sleep 3; xset s activate) 2>/dev/null &
 
     # Disable VT-switching & Lock screen 
     which physlock >/dev/null && physlock -l
@@ -45,7 +47,7 @@ elif [ -n "$DISPLAY" ]; then
     fi
     
     # Wake & reset screens, reset values (fingerprint reader might not be noticed as non-idle activity)
-    (xset dpms force on ; xset s reset ; xset +dpms ; xset dpms 900 900 900 ; xset s 720 ; xset s blank) 2>/dev/null &
+    (xset dpms force on ; xset s reset ; xset +dpms ; xset dpms 0 0 900 ; xset s 720 ; xset s blank) 2>/dev/null &
 else
     # on non-console terminal without X DISPLAY... just trying to lock the terminal
     which vlock >/dev/null || { echo 'fraxlock ERROR! No executable vlock! [ apt install vlock ]' >/dev/stderr; exit 1;}
