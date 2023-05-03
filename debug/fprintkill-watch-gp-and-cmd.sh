@@ -20,7 +20,7 @@ done
 export FPK_ARGS
 echo "~~~ $fprintkill: $0 $@" > /tmp/fprintkill-watch.$$.log
 ( while ps $$ >/dev/null 2>&1; do sleep 1; done ; echo ; rm -v /tmp/fprintkill-watch.$$.log ) &
-sh "$fprintkill" >>/tmp/fprintkill-watch.$$.log 2>&1 &
+sh "$fprintkill" "$@" >>/tmp/fprintkill-watch.$$.log 2>&1 &
 watch -n1 "
 cat /tmp/fprintkill-watch.$$.log ;
 echo ~~~ Process Grupp ;
