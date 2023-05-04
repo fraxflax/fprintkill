@@ -18,7 +18,11 @@ ${___}SYNOPSIS:
 	$fprintkill$__ [ cmd [ arg ...] ]
 
 	Executes cmd [ arg ...] and for as long as cmd is running,
-	upon successfull fingerprint verify, cmd is terminated.
+	upon successfull fingerprint verify, cmd is terminated (SIGTERM).
+
+	$fprintkill exits with the same code as the cmd.
+	If cmd is terminated after fingerprint verify,
+        $fprintkill exits with the SIGTERM exit code (143 in linux).
 
 	The fingerprint termination depends on 'fprintd-verify',
 	'pgrep', 'pkill', 'ps', 'sed' and 'setsid'. If they are not
@@ -127,6 +131,7 @@ test $xpid -eq $pgid || exec setsid sh $0 "$@"
     while ps -opid= $xpid >/dev/null; do
 	fprintd-verify -f any >/dev/null 2>&1 && {
 	    pkill -TERM -g $pgid >/dev/null 2>&1
+	    echo inner exit 0
 	    exit 0
 	}
     done &
@@ -136,7 +141,9 @@ test $xpid -eq $pgid || exec setsid sh $0 "$@"
 
     # Cleanup: Kill potentially remaining children 
     pkill -TERM -g $pgid >/dev/null 2>&1
+    echo outer exit 0
     exit 0
 }&
 
 eval "exec '$FPK_EXEC' $FPK_ARGS"
+# exec will exit with code 143 if killed
