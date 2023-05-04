@@ -47,7 +47,13 @@ elif [ -n "$DISPLAY" ]; then
 
     # Disable VT-switching & Lock screen 
     which physlock >/dev/null && physlock -l
-    eval "$XSCREENLOCKER" 2>&1 | grep -v Terminated
+
+    eval "$XSCREENLOCKER" ; EXITCODE=$?
+    test $EXITCODE -eq 0 -o $EXITCODE -eq 143 -o $EXITCODE -eq 137 || exit $EXITCODE 
+    # exited with SUCCESS, or terminated by SIGTERM or killed by SIGKILL
+    # otherwise it's likely failing because we already have a screenlock running
+    # and we should NOT turn on VT switching and restore screen blank/off values
+    
     if which physlock >/dev/null; then
 	physlock -L
     else 
