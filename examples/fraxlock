@@ -3,9 +3,11 @@ if [ "`tty | cut -c-8`" = "/dev/tty" ]; then
     # we are on "real" console even though X might be running and DISPLAY is set
     if which physlock >/dev/null; then 
 	physlock -sm || { C=$?; echo 'fraxlock ERROR! "physlock -sm" failed!' >/dev/stderr; exit $? ;}
+	exit 0
     elif which vlock >/dev/null; then
 	vlock -a || { C=$?; echo 'fraxlock ERROR! "vlock -a" failed!' >/dev/stderr; exit $? ;}
 	echo 'fraxlock WARNING! For full functionality: [ apt install physlock ]' >/dev/stderr
+	exit 0
     else
 	echo 'fraxlock ERROR! No executable console locker in path! [ apt install physlock vlock ]' >/dev/stderr
 	exit 1
@@ -65,9 +67,13 @@ elif [ -n "$DISPLAY" ]; then
     # Wake & reset screens, reset values (fingerprint reader might not be noticed as non-idle activity)
     xset dpms force on ; xset s reset
     xset s $blank ; xset s blank
-    xset +dpms ; xset dpms $standby $suspend $off ; 
+    xset +dpms ; xset dpms $standby $suspend $off ;
+    exit $EXITCODE
 else
     # on non-console terminal without X DISPLAY... just trying to lock the terminal
     which vlock >/dev/null || { echo 'fraxlock ERROR! No executable vlock! [ apt install vlock ]' >/dev/stderr; exit 1;}
     vlock || { C=$?; echo 'fraxlock ERROR! "vlock" failed!' >/dev/stderr; exit $? ;}
+    exit 0
 fi
+echo 'WARNING: You are beyond the point of no return!' >/dev/stderr
+exit 0
