@@ -32,11 +32,18 @@ elif [ -n "$DISPLAY" ]; then
     }
 
     # Shorten values for blanking and screens off
-    blanktimeout=`xset q | grep -A999 'Screen Saver:' | grep timeout: | sed -E 's/.*timeout:\s*([0-9]+).*/\1/'`
-    echo "$blanktimeout" | grep -E '^[0-9]+$' >/dev/null || blanktimeout=666
-    offtimeout=`xset q | grep -A999 'DPMS (Energy Star):' | grep Off: | sed -E 's/.*Off:\s*([0-9]+).*/\1/'`
-    echo "$offtimeout" | grep -E '^[0-9]+$' >/dev/null || offtimeout=999
-    (xset s blank; xset s 15; xset +dpms; xset dpms 0 0 30; sleep 3; xset s activate) 2>/dev/null &
+    blank=`xset q | grep -A999 'Screen Saver:' | grep timeout: | sed -E 's/.*timeout:\s*([0-9]+).*/\1/'`
+    echo "$blank" | grep -E '^[0-9]+$' >/dev/null || blank=666
+    off=`xset q | grep -A999 'DPMS (Energy Star):' | grep Off: | sed -E 's/.*Off:\s*([0-9]+).*/\1/'`
+    echo "$off" | grep -E '^[0-9]+$' >/dev/null || off=999
+    test $off -gt $blank || off=$((blank+60))
+    standby=$off
+    suspend=$off
+    test $off -gt 60 && {
+	suspend=$((off-15))
+	standby=$((suspend-15))
+    }
+    ( xset s blank; xset s 15; xset +dpms; xset dpms 20 25 30; sleep 1; xset s activate ) 2>/dev/null &
 
     # Disable VT-switching & Lock screen 
     which physlock >/dev/null && physlock -l
@@ -50,7 +57,9 @@ elif [ -n "$DISPLAY" ]; then
     fi
     
     # Wake & reset screens, reset values (fingerprint reader might not be noticed as non-idle activity)
-    (xset dpms force on ; xset s reset ; xset +dpms ; xset dpms 0 0 $offtimeout ; xset s $blanktimeout ; xset s blank) 2>/dev/null &
+    xset dpms force on ; xset s reset
+    xset s $blank ; xset s blank
+    xset +dpms ; xset dpms $standby $suspend $off ; 
 else
     # on non-console terminal without X DISPLAY... just trying to lock the terminal
     which vlock >/dev/null || { echo 'fraxlock ERROR! No executable vlock! [ apt install vlock ]' >/dev/stderr; exit 1;}
