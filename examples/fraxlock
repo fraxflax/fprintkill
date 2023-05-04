@@ -47,7 +47,7 @@ elif [ -n "$DISPLAY" ]; then
 
     # Disable VT-switching & Lock screen 
     which physlock >/dev/null && physlock -l
-    eval "$XSCREENLOCKER"
+    eval "$XSCREENLOCKER" 2>&1 | grep -v Terminated
     if which physlock >/dev/null; then
 	physlock -L
     else 
