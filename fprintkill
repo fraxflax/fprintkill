@@ -70,8 +70,7 @@ ${___}	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0" 	$__
 	... if proc1 exits, fprintkill will keep monitoring proc2 and
         proc3. If proc1, proc2 and proc3 all exits fprintkill will
         clean up. Upon verified fingerprint, proc1, proc2 and proc3
-        (and their child processes, if any) will be terminated:
-        $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
+        (and their child processes, if any) will be terminated (cleaned up).
 
 EOU
     exit 1
