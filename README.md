@@ -41,7 +41,7 @@ Also daemons are properly handled. To launch xtrlock in the background as a daem
 
  In the case the cmd is a daemon spawning several parallel processes (spawn) before exiting, all of the spawn will be monitored and terminated upon verified fingerprint. Cleanup will not be performed before all of the parallell processes have exited or have been terminated. In this example: <br/>
 `fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"` <br/>
- ... if proc1 exits, fprintkill will keep monitoring proc2 and proc3. If proc1, proc2 and proc3 all exits fprintkill will clean up. Upon verified fingerprint, proc1, proc2 and proc3 (and their child processes, if any) will be terminated: fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
+ ... if proc1 exits, fprintkill will keep monitoring proc2 and proc3. If proc1, proc2 and proc3 all exits fprintkill will clean up. Upon verified fingerprint, proc1, proc2 and proc3 (and their child processes, if any) will be terminated (cleaned up).
 
 __SCRIPT EXAMPLES:__ <br/>
 E.g. one could use fprintkill in "wrapper" scripts, e.g. __/usr/local/bin/xtrlock__
