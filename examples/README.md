@@ -2,7 +2,8 @@
 
 * __fraxlock__
    locker for console, terminal or X thet
-   tests for different locker programs and launches the most preferred one found,
+   in preferred order depeding on environment, 
+   finds a suitable locker and launches it 
    using fprintkill to get fingerprint unlock if necessary.
 
 * __slock__
