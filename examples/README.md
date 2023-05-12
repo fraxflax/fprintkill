@@ -5,7 +5,7 @@
    finds a suitable locker and launches it using fprintkill to get fingerprint unlock if necessary.
 
 * __slock__
-   simple wrapper to lauch slock with fprintkill
+   simple wrapper to lauch slock with fprintkill, using environment variables instead of arguments to fprintkill
    
 * __xtrlock__
    simple wrapper to lauch xtrlock with fprintkill
