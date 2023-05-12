@@ -131,7 +131,6 @@ test $xpid -eq $pgid || exec setsid sh $0 "$@"
     while ps -opid= $xpid >/dev/null; do
 	fprintd-verify -f any >/dev/null 2>&1 && {
 	    pkill -TERM -g $pgid >/dev/null 2>&1
-	    echo inner exit 0
 	    exit 0
 	}
     done &
@@ -141,7 +140,6 @@ test $xpid -eq $pgid || exec setsid sh $0 "$@"
 
     # Cleanup: Kill potentially remaining children 
     pkill -TERM -g $pgid >/dev/null 2>&1
-    echo outer exit 0
     exit 0
 }&
 
