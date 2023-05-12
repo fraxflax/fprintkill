@@ -9,13 +9,11 @@ BUT now that we have fingerprint readers on almost all laptops I also do want to
 __INSTALL:__ <br/>
 Just download the script (fprintkill), make it executable and stuck it in your path :-) e.g. like this:
 ```
-curl -o /usr/local/bin/fprintkill https://raw.githubusercontent.com/fraxflax/fprintkill/main/fprintkill
-chmod a+rx /usr/local/bin/fprintkill
+curl -o /usr/local/bin/fprintkill https://raw.githubusercontent.com/fraxflax/fprintkill/main/fprintkill ; chmod a+rx /usr/local/bin/fprintkill
 ```
 You might want to have fraxlock (in the examples folder as well):
 ```
-curl -o /usr/local/bin/fraxlock https://raw.githubusercontent.com/fraxflax/fprintkill/main/examples/fraxlock
-chmod a+rx /usr/local/bin/fraxlock
+curl -o /usr/local/bin/fraxlock https://raw.githubusercontent.com/fraxflax/fprintkill/main/examples/fraxlock ; chmod a+rx /usr/local/bin/fraxlock
 ```
 
 __SYNOPSIS:__ <br/>
