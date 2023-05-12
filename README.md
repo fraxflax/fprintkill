@@ -17,7 +17,7 @@ fprintkill exits with the same code as the cmd.  If cmd is terminated after fing
 
 __DEPENDENCIES:__ <br/>
 fprintkill will always launch the cmd, but the fingerprint termination depends on the following executables: <br />
-_fprintd-verify, pgrep, pkill, ps, sed, & setsid_ <br />
+_fprintd-verify_, _pgrep_, _pkill_, _ps_, _sed_, & _setsid_ <br />
 If they are not found in the path, a warning will be printed to stderr but the cmd will still be launched, even though it cannot be killed by fingerprint. (To satisfy the dependencies in Debian/Ubuntu: `apt install util-linux procps sed fprintd util-linux`).
 
 __EXAMPLES:__ <br/>
@@ -55,7 +55,7 @@ test -x $EXEC || {
 which fprintkill >/dev/null || exec $EXEC "$@"
 eval "exec fprintkill $EXEC \"$@\""
 ```
-having /usr/local/bin preceed /usr/bin in the path, the script becomes a transparent wrapper for xtrlock allowing unlocking using fingerprint.
+having _/usr/local/bin_ preceed _/usr/bin_ in the path, the script becomes a transparent wrapper for xtrlock allowing unlocking using fingerprint.
 
 Please, see the examples folder for more examples, including _fraxlock_, a nifty multilocker for different environments :-) <br/>
 https://github.com/fraxflax/fprintkill/tree/main/examples
