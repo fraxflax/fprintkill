@@ -17,8 +17,8 @@ fprintkill exits with the same code as the cmd.  If cmd is terminated after fing
 
 __DEPENDENCIES:__ <br/>
 fprintkill will always launch the cmd, but the fingerprint termination depends on the following executables: <br />
-`fprintd-verify pgrep pkill ps sed setsid` <br />
-If they are not found in the path, a warning will be printed to stderr but the cmd will still be launched, even though it cannot be killed by fingerprint. (To satisfy the dependencies in Debian/Ubuntu: apt install util-linux procps sed fprintd util-linux).
+_fprintd-verify, pgrep, pkill, ps, sed, & setsid_ <br />
+If they are not found in the path, a warning will be printed to stderr but the cmd will still be launched, even though it cannot be killed by fingerprint. (To satisfy the dependencies in Debian/Ubuntu: `apt install util-linux procps sed fprintd util-linux`).
 
 __EXAMPLES:__ <br/>
 Lock the screen with slock, terminating it upon verified fingerprint: <br/>
