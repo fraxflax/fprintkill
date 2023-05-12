@@ -44,7 +44,6 @@ Also daemons are properly handled. To launch xtrlock in the background as a daem
  ... if proc1 exits, fprintkill will keep monitoring proc2 and proc3. If proc1, proc2 and proc3 all exits fprintkill will clean up. Upon verified fingerprint, proc1, proc2 and proc3 (and their child processes, if any) will be terminated: fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
 
 __SCRIPT EXAMPLES:__ <br/>
-
 E.g. one could use fprintkill in "wrapper" scripts, e.g. __/usr/local/bin/xtrlock__
 ```shell
 #!/bin/sh
