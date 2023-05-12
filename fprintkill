@@ -20,53 +20,58 @@ ${___}SYNOPSIS:
 	Executes cmd [ arg ...] and for as long as cmd is running,
 	upon successfull fingerprint verify, cmd is terminated (SIGTERM).
 
-	$fprintkill exits with the same code as the cmd.
-	If cmd is terminated after fingerprint verify,
-        $fprintkill exits with the SIGTERM exit code (143 in linux).
-
-	The fingerprint termination depends on 'fprintd-verify',
-	'pgrep', 'pkill', 'ps', 'sed' and 'setsid'. If they are not
-	found, a warning will be printed to stderr but the cmd will
-	still be launched, even though it cannot be killed by
-	fingerprint. (To satisfy the dependencies in Debian/Ubuntu:
-	apt install util-linux procps sed fprintd util-linux).
-
 	If no arguments are given to fprintkill, enviroment variables
 	FPK_EXEC and FPK_ARGS are used for cmd [ arg ...]
+
+${___}EXIT STATUS:$__
+        $fprintkill exits with the same code as the cmd.  If cmd is
+	terminated after fingerprint verify, $fprintkill exits with
+	the SIGTERM exit code (143 in linux).
+
+${___}DEPENDENCIES:$__
+	$fprintkill will always launch the cmd, but the fingerprint
+	termination depends on the following executables:
+${___}	$DEPS	$__
+	If they are not found in the path, a
+	warning will be printed to stderr but the cmd will still be
+	launched, even though it cannot be killed by fingerprint. (To
+	satisfy the dependencies in Debian/Ubuntu: apt install
+	util-linux procps sed fprintd util-linux).
 
 ${___}EXAMPLES:$__
 	Lock the screen with slock, terminating it upon verified
 	fingerprint:
-	   $fprintkill slock
+${___}	   $fprintkill slock	$__
 
 	Run '/usr/bin/xtrlock -b' in the background terminating it
 	upon verified fingerprint:
-	   $fprintkill /usr/bin/xtrlock -b &
+${___}	   $fprintkill /usr/bin/xtrlock -b &	$__
 
 	Alternative using environment variables:
-	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &
+${___}	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &	$__
 
 	Arguments with whitespaces are ok:
-	   $fprintkill sh -c "xset dpms force off ; xtrlock" &
+${___}	   $fprintkill sh -c "xset dpms force off ; xtrlock" &	$__
 
 	Alternative using environment variables:
-	   env FPK_EXEC=sh FPK_ARGS='-c  "xset dpms force off ; xtrlock"' &
+	   env FPK_EXEC=sh FPK_ARGS='-c  "xset dpms force off ; xtrlock"' $fprintkill &	$__
 
 	Also daemons are properly handled.  To launch xtrlock in the
 	background as a daemon that will be terminated upon verified
 	fingerprint:
-	   $fprintkill xtrlock -f
+${___}	   $fprintkill xtrlock -f	$__
 
 	In the case the cmd is a daemon spawning several parallel
 	processes (spawn) before exiting, all of the spawn will be
 	monitored and terminated upon verified fingerprint. Cleanup
 	will not be performed before all of the parallell processes
-	have exited or have been terminated. In this example, if proc1
-	exits, fprintkill will keep monitoring proc2 and proc3. If
-	proc1, proc2 and proc3 all exits fprintkill will clean
-	up. Upon verified fingerprint, proc1, proc2 and proc3 (and
-	their child processes, if any) will be terminated:
-	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
+	have exited or have been terminated. In this example:
+${___}	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0" 	$__
+	... if proc1 exits, fprintkill will keep monitoring proc2 and
+        proc3. If proc1, proc2 and proc3 all exits fprintkill will
+        clean up. Upon verified fingerprint, proc1, proc2 and proc3
+        (and their child processes, if any) will be terminated:
+        $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0"
 
 EOU
     exit 1
