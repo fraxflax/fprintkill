@@ -8,8 +8,8 @@
 # feel free to use, modify and/or distribute as you see fit.
 # 
 fprintkill="`basename "$0" 2>/dev/null`" || fprintkill="fprintkill"
-DEPS="fprintd-verify pgrep pkill ps sed setsid" 
 USAGE() {
+    DEPS="fprintd-verify pgrep pkill ps sed setsid" 
     COLS=72; ___=''; __=''; which tput>/dev/null && { COLS=`tput cols`; ___=`tput bold`; __=`tput sgr0`; }
     FMT=cat;which fmt>/dev/null && FMT="fmt -w $COLS"
     $FMT<<EOU
