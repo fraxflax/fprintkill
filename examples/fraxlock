@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# https://github.com/fraxflax/fprintkill/blob/main/examples/fraxlock
+# 
 # fraxlock selects a suitable screen locker for the environment it's running in
 # and launches it with fprintkill if necessary for fingerprint unlocking
 # it also tweaks timeouts for screen blanking and turning the screens off.
