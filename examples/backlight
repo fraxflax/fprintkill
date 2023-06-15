@@ -1,0 +1,51 @@
+#!/bin/sh
+# Set LOWEST to 0 to be able to completely turn the backlight off
+# or to a higher value (e.g. 1) to prevent turning the light completely off
+# as this might be considered turning the screen of and "xset dpms force on"
+# on some systems will turn up the light if it's set to 0
+LOWEST=1 
+
+test "`hostname`" = "fraxlap" && exec xbacklight "$@"
+
+SYS="/sys/class/backlight/`ls -1 /sys/class/backlight/ | head -1`"
+MAX=`cat $SYS/max_brightness`
+CUR=`cat $SYS/brightness`
+
+test "-get" = "$1" && {
+    echo $(($CUR*100/$MAX))%
+    exit 0
+}
+
+
+OP=$1
+VAL=`echo $2 | sed 's/[^0-9]*\([0-9][0-9]*\).*/\1/'` # just keep the first found consecutive digits
+ISNUM=`echo $VAL | sed 's/[0-9]*//'` # if there was no digits at all this will be nonempty
+test -n "$ISNUM" && OP=ERROR
+
+    
+case "$OP" in
+    -set)
+	NVAL=$(($VAL*$MAX/100))
+	;;
+    -inc)
+	NVAL=$(($CUR+$VAL*$MAX/100))
+	;;
+    -dec)
+	NVAL=$(($CUR-$VAL*$MAX/100))
+	;;
+    *)
+	backlight=`basename $0` || backlight=backlight
+	cat<<EOF
+USAGE:
+    $backlight -get
+    $backlight { -set | -inc | -dec } percent
+EOF
+	exit 1
+	;;
+esac
+test $NVAL -gt $MAX && NVAL=$MAX
+test $NVAL -lt $LOWEST && NVAL=$LOWEST 
+echo $NVAL > "$SYS/brightness"
+
+exit 0
+echo $(($NVAL*100/$MAX))"% ($NVAL/$MAX)" 
