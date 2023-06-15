@@ -1,4 +1,12 @@
 #!/bin/sh
+#
+# This script uses fprintkill: https://github.com/fraxflax/fprintkill
+# also see darklock, which is available as an example for
+# backlight:  https://github.com/fraxflax/backlight
+# 
+# This is free software created by frax@axnet.nu,
+# feel free to use, modify and/or distribute as you see fit.
+# 
 if [ "`tty | cut -c-8`" = "/dev/tty" ]; then
     # we are on "real" console even though X might be running and DISPLAY is set
     if which physlock >/dev/null; then 
