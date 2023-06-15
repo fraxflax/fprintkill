@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# https://github.com/fraxflax/fprintkill
+#
 # fprintkill is a POSIX-compliant (pure bourne shell) script for
 # launching an executable and be able to kill it by reading your
 # fingerprint.
