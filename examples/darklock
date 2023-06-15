@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# get current backlight, and save it
+BL=`backlight -get`
+
+
+# Darken screen
+backlight -set 0
+
+# Turn screens off after xscreenlocker has launched
+test -n "$DISPLAY" && { sleep 1 ; xset dpms force off ;} &
+
+
+# Lock (if lock failed probably alredy locked so don't turn on light)
+if which fraxlock > /dev/null; then 
+    fraxlock; EXITCODE=$?
+elif which physlock  > /dev/null; then
+    physlock -L ; physlock -sm; EXITCODE=$?
+elif which vlock > /dev/null -a [ "`tty | cut -c-8`" = "/dev/tty" ]; then
+    vlock -a; EXITCODE=$?
+else
+    echo 'No suitable locker found ... terminating!' >/dev/stderr
+    EXITCODE=143
+fi
+
+
+backlight -set $BL
+
+# Unless exited with SUCCESS, or terminated by SIGTERM or killed by
+# SIGKILL it's likely failing because we already have a screenlock
+# running and we should NOT turn on the screen,
+test $EXITCODE -eq 0 -o $EXITCODE -eq 143 -o $EXITCODE -eq 137 || exit $EXITCODE
+
+# Turn screens on
+test -n "$DISPLAY" && xset dpms force on
+    
+exit $EXITCODE
