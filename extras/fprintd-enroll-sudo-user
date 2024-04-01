@@ -1,0 +1,108 @@
+#!/bin/sh
+[ `id -u` -eq 0 ] || {
+    exec sudo sh $0 "$USER"
+}
+[ -n "$SUDO_USER" ] || {
+    printf "\nUSAGE: Run this script as the user you want to change fingerprints for.\n\n"
+    exit 1
+}
+
+getkey() {
+    [ -n "$1" ] && {
+	P=$1; shift
+	printf "\n$P " "$@"
+    }
+    if which stty >/dev/null; then
+        old_tty_settings=$(stty -g) # Save old settings
+        stty -icanon
+        k=$(head -c1)
+        stty "$old_tty_settings"    # Restore old settings
+    else
+        read k
+        k=$(printf "%s" "$k" | head -c1)
+    fi
+}
+show_fingerprints() {
+    clear; echo
+    for u in root $SUDO_USER; do fprintd-list $u | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
+}
+
+k=''
+while [ -z "$k" ] ; do
+    show_fingerprints
+    getkey "\nThe above fingerprints are currently enrolled.\n\nWhat do you want to do?\n%s\n%s\n%s\\n%s\n%s\n%s\\n%s\n" \
+	   "Q. I'm done!" \
+	   "1. Refresh the same finger prints for user root?" \
+	   "2. Refresh the same finger prints for user $SUDO_USER?" \
+	   "3. Delete root's finger prints and enroll new ones?" \
+	   "4. Delete $SUDO_USER's finger prints and enroll new ones?" \
+	   "5. Enroll new finger print(s) for user root?" \
+	   "6. Enroll new finger print(s) for user $SUDO_USER?"
+    case "$k" in
+	q|Q) break ;;
+	1|2)
+	    u=$(echo $k | sed 's/1/root/;s/2/$SUDO_USER/')
+	    FINGERPRINTS=$(fprintd-list $u | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2)
+	    fprintd-delete $u
+	    for f in $FINGERPRINTS; do
+		fprintd-enroll -f $f $u || {
+		    getkey "Failed to enroll $f for user $u.\nPress any key to continue."
+		}
+		sleep 1
+	    done
+	    getkey "Press any key"
+	    k=''
+	    ;;
+	[3-6])
+	    u=$(echo $k | sed 's/[35]/root/;s/[46]/$SUDO_USER/')
+	    [ "$k" = '2' -o "$k" = '3' ] && fprintd-delete $u
+	    k=''
+	    while [ "$k" != 'q' -a "$k" != 'Q' ]; do
+		show_fingerprints
+		getkey "Which finger do you want to enroll for user $u?\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
+		       "Q. I'm done enrolling new fingerprints for user $u." \
+		       "0. left-thumb" \
+		       "1. left-index-finger" \
+		       "2. left-middle-finger" \
+		       "3. left-ring-finger" \
+		       "4. left-little-finger" \
+		       "5. right-thumb" \
+		       "6. right-index-finger" \
+		       "7. right-middle-finger" \
+		       "8. right-ring-finger" \
+		       "9. right-little-finger"
+		case "$k" in
+		    [0-9])
+			case "$k" in
+			    0) f='left-thumb' ;;
+			    1) f='left-index-finger' ;;
+			    2) f='left-middle-finger' ;;
+			    3) f='left-ring-finger' ;;
+			    4) f='left-little-finger' ;;
+			    5) f='right-thumb' ;;
+			    6) f='right-index-finger' ;;
+			    7) f='right-middle-finger' ;;
+			    8) f='right-ring-finger' ;;
+			    9) f='right-little-finger' ;;
+			esac
+			fprintd-enroll -f $f $u || {
+			    getkey "Failed to enroll $f for user $u.\nPress any key to continue."
+			}
+			sleep 1
+			;;
+		    q|Q)
+			;;
+		    *)
+			k=''    
+			;;
+		esac
+	    done
+	    k=''
+	    ;;
+	*)
+	    k=''
+	    ;;
+    esac
+done
+show_fingerprints
+exit 0
