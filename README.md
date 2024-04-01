@@ -70,3 +70,6 @@ having _/usr/local/bin_ preceed _/usr/bin_ in the path, the script becomes a tra
 
 Please, see the examples folder for more examples, including _fraxlock_, a nifty multilocker for different environments :-) <br/>
 https://github.com/fraxflax/fprintkill/tree/main/examples
+
+In the extras folder you can find some utilities making life easier enrolling / refreshing the fingerprind db.
+https://github.com/fraxflax/fprintkill/tree/main/extras
