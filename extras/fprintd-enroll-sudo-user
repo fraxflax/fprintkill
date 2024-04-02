@@ -1,10 +1,6 @@
 #!/bin/sh
-[ `id -u` -eq 0 ] || {
+[ `id -u` -eq 0 -a -n "$SUDO_USER" ] || {
     exec sudo sh $0 "$USER"
-}
-[ -n "$SUDO_USER" ] || {
-    printf "\nUSAGE: Run this script as the user you want to change fingerprints for.\n\n"
-    exit 1
 }
 
 getkey() {
@@ -24,6 +20,7 @@ getkey() {
 }
 show_fingerprints() {
     clear; echo
+    local u=''
     for u in root $SUDO_USER; do fprintd-list $u | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
 }
 
@@ -41,26 +38,31 @@ while [ -z "$k" ] ; do
     case "$k" in
 	q|Q) break ;;
 	1|2)
-	    u=$(echo $k | sed 's/1/root/;s/2/$SUDO_USER/')
-	    FINGERPRINTS=$(fprintd-list $u | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2)
-	    fprintd-delete $u
+	    user=$(echo $k | sed "s/1/root/;s/2/$SUDO_USER/")
+	    FINGERPRINTS=$(fprintd-list $user | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2)
+	    if [ -n "$FINGERPRINTS" ]; then
+		printf "\n\nEnrolling the following fingerprints for user '%s':\n" "$user"
+	    else
+		printf "\n\nNo fingerprints found for user '%s'.\n" "$user"
+	    fi
 	    for f in $FINGERPRINTS; do
-		fprintd-enroll -f $f $u || {
-		    getkey "Failed to enroll $f for user $u.\nPress any key to continue."
+		printf "  %s\n" "$f\n"
+		fprintd-enroll -f $f $user || {
+		    getkey "Failed to enroll $f for user $user.\nPress any key to continue."
 		}
 		sleep 1
 	    done
-	    getkey "Press any key"
+	    getkey "Press any key to get back to the menu."
 	    k=''
 	    ;;
 	[3-6])
-	    u=$(echo $k | sed 's/[35]/root/;s/[46]/$SUDO_USER/')
-	    [ "$k" = '2' -o "$k" = '3' ] && fprintd-delete $u
+	    user=$(echo $k | sed "s/[35]/root/;s/[46]/$SUDO_USER/")
+	    [ "$k" = '2' -o "$k" = '3' ] && fprintd-delete $user
 	    k=''
 	    while [ "$k" != 'q' -a "$k" != 'Q' ]; do
 		show_fingerprints
-		getkey "Which finger do you want to enroll for user $u?\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
-		       "Q. I'm done enrolling new fingerprints for user $u." \
+		getkey "Which finger do you want to enroll for user '%s'?\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" "$user" \
+		       "Q. I'm done enrolling new fingerprints for user $user." \
 		       "0. left-thumb" \
 		       "1. left-index-finger" \
 		       "2. left-middle-finger" \
@@ -85,8 +87,8 @@ while [ -z "$k" ] ; do
 			    8) f='right-ring-finger' ;;
 			    9) f='right-little-finger' ;;
 			esac
-			fprintd-enroll -f $f $u || {
-			    getkey "Failed to enroll $f for user $u.\nPress any key to continue."
+			fprintd-enroll -f $f $user || {
+			    getkey "Failed to enroll $f for user $user.\nPress any key to continue."
 			}
 			sleep 1
 			;;
