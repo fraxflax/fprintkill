@@ -22,6 +22,7 @@ else
 fi
 show_fingerprints() {
     clear; echo
+    local u=''
     for u in $USERS; do fprintd-list $u | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
 }
 
@@ -36,25 +37,29 @@ while [ -z "$k" ] ; do
     case "$k" in
 	q|Q) break ;;
 	1)
-	    #FINGERPRINTS=$(fprintd-list $u | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2)
-	    #fprintd-delete $u
-	    #for f in $FINGERPRINTS; do
-	    for f in $(fprintd-list $u | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2); do
-		fprintd-enroll -f $f $u || {
-		    getkey "Failed to enroll $f for user $u.\nPress any key to continue."
+	    FINGERPRINTS=$(fprintd-list $USER | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2)
+	    if [ -n "$FINGERPRINTS" ]; then
+		printf "\n\nEnrolling the following fingerprints for user '%s':\n" "$USER"
+	    else
+		printf "\n\nNo fingerprints found for user '%s'.\n" "$USER"
+	    fi
+	    for f in $FINGERPRINTS; do
+		printf "  %s\n" "$f"
+		sudo fprintd-enroll -f $f $USER || {
+		    getkey "Failed to enroll $f for user $USER.\nPress any key to continue."
 		}
 		sleep 1
 	    done
-	    getkey "Press any key"
+	    getkey "Press any key to get back to the main menu."
 	    k=''
 	    ;;
 	2|3)
-	    [ "$k" = '2' ] && fprintd-delete $u
+	    [ "$k" = '2' ] && fprintd-delete $USER
 	    k=''
 	    while [ "$k" != 'q' -a "$k" != 'Q' ]; do
 		show_fingerprints
-		getkey "Which finger do you want to enroll for user $u?\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
-		       "Q. I'm done enrolling new fingerprints for user $u." \
+		getkey "Which finger do you want to enroll for user $USER?\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
+		       "Q. I'm done enrolling new fingerprints for user $USER." \
 		       "0. left-thumb" \
 		       "1. left-index-finger" \
 		       "2. left-middle-finger" \
@@ -79,8 +84,8 @@ while [ -z "$k" ] ; do
 			    8) f='right-ring-finger' ;;
 			    9) f='right-little-finger' ;;
 			esac
-			fprintd-enroll -f $f $u || {
-			    getkey "Failed to enroll $f for user $u.\nPress any key to continue."
+			sudo fprintd-enroll -f $f $USER || {
+			    getkey "Failed to enroll $f for user $USER.\nPress any key to continue."
 			}
 			sleep 1
 			;;
