@@ -46,13 +46,13 @@ while [ -z "$k" ] ; do
 		printf "\n\nNo fingerprints found for user '%s'.\n" "$user"
 	    fi
 	    for f in $FINGERPRINTS; do
-		printf "  %s\n" "$f\n"
+		printf "  %s\n" "$f"
 		fprintd-enroll -f $f $user || {
 		    getkey "Failed to enroll $f for user $user.\nPress any key to continue."
 		}
 		sleep 1
 	    done
-	    getkey "Press any key to get back to the menu."
+	    getkey "Press any key to get back to the main menu."
 	    k=''
 	    ;;
 	[3-6])
