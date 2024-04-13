@@ -15,6 +15,8 @@
 #
 
 # ensure that we don't run multiple instances of this script
+# this will only prevent multiple instances of fraxlock from running
+# if the locker is run as a foreground process, and not forked to background
 PIDFILE=/tmp/fraxlock`id -u`.pid
 [ -f "$PIDFILE" ] && {
     PID=`cat "$PIDFILE"` && {
