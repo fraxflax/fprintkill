@@ -12,7 +12,19 @@
 # 
 # This is free software created by frax@axnet.nu,
 # feel free to use, modify and/or distribute as you see fit.
-# 
+#
+
+# ensure that we don't run multiple instances of this script
+PIDFILE=/tmp/fraxlock`id -u`.pid
+[ -f "$PIDFILE" ] && {
+    PID=`cat "$PIDFILE"` && {
+	[ "$PID" -gt 0 ] 2>/dev/null && \
+	    [ -d /proc/$PID ] && \
+	    exit 1
+    }
+}
+printf $$ > "$PIDFILE"
+
 if [ "`tty | cut -c-8`" = "/dev/tty" ]; then
     # we are on "real" console even though X might be running and DISPLAY is set
     if which physlock >/dev/null; then 
