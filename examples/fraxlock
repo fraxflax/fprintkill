@@ -14,20 +14,7 @@
 # feel free to use, modify and/or distribute as you see fit.
 #
 
-# ensure that we don't run multiple instances of this script
-# this will NOT prevent multiple instances if XSCREENLOCKER is set
-# to lauch a locker that is runing as a background process
-PIDFILE=/tmp/fraxlock`id -u`.pid
-[ -f "$PIDFILE" ] && {
-    PID=`cat "$PIDFILE"` && {
-	[ "$PID" -gt 0 ] 2>/dev/null && \
-	    [ -d /proc/$PID ] && \
-	    exit 1
-    }
-}
-printf $$ > "$PIDFILE"
-
-if [ "`tty | cut -c-8`" = "/dev/tty" ]; then
+if [ "$(tty | cut -c-8)" = "/dev/tty" ]; then
     # we are on "real" console even though X might be running and DISPLAY is set
     if which physlock >/dev/null; then 
 	physlock -sm || { C=$?; echo 'fraxlock ERROR! "physlock -sm" failed!' >/dev/stderr; exit $C ;}
@@ -40,7 +27,17 @@ if [ "`tty | cut -c-8`" = "/dev/tty" ]; then
 	echo 'fraxlock ERROR! No executable console locker in path! [ apt install physlock vlock ]' >/dev/stderr
 	exit 1
     fi
-elif [ -n "$DISPLAY" ]; then  
+elif [ -n "$DISPLAY" ]; then
+    # ensure that we don't run multiple instances of this script on the same X-DISPLAY
+    # ( this will NOT prevent multiple instances if XSCREENLOCKER is set
+    #   to lauch a locker that is runing as a background process )
+    dHOST=${DISPLAY%%:*}
+    [ "$dHOST" ] || dHOST=127.0.0.1
+    [ "$dHOST" = localhost ] && dHOST=127.0.0.1
+    PIDFILE="/tmp/fraxlock-$dHOST:${DISPLAY#*:}.pid"
+    [ -f "$PIDFILE" ] && PID=`cat "$PIDFILE"` && [ "$PID" -gt 0 ] 2>/dev/null && [ -d /proc/$PID ] && exit 1
+    printf $$ > "$PIDFILE"
+    chmod 666 "$PIDFILE"
     test -z "$XSCREENLOCKER" && {
 	if [ -x /usr/bin/xtrlock ] && which fprintkill >/dev/null; then
 	    XSCREENLOCKER="fprintkill /usr/bin/xtrlock -b"
