@@ -35,7 +35,7 @@ elif [ -n "$DISPLAY" ]; then
     [ "$dHOST" ] || dHOST=127.0.0.1
     [ "$dHOST" = localhost ] && dHOST=127.0.0.1
     PIDFILE="/tmp/fraxlock-$dHOST:${DISPLAY#*:}.pid"
-    [ -f "$PIDFILE" ] && PID=`cat "$PIDFILE"` && [ "$PID" -gt 0 ] 2>/dev/null && [ -d /proc/$PID ] && exit 1
+    [ -f "$PIDFILE" ] && PID=$(cat "$PIDFILE") && [ "$PID" -gt 0 ] 2>/dev/null && [ -d /proc/$PID ] && exit 1
     printf $$ > "$PIDFILE"
     chmod 666 "$PIDFILE"
     test -z "$XSCREENLOCKER" && {
@@ -59,9 +59,9 @@ elif [ -n "$DISPLAY" ]; then
     }
 
     # Shorten values for blanking and screens off
-    blank=`xset q | grep -A999 'Screen Saver:' | grep timeout: | sed -E 's/.*timeout:\s*([0-9]+).*/\1/'`
+    blank=$(xset q | grep -A999 'Screen Saver:' | grep timeout: | sed -E 's/.*timeout:\s*([0-9]+).*/\1/')
     echo "$blank" | grep -E '^[0-9]+$' >/dev/null || blank=666
-    off=`xset q | grep -A999 -E '^\s*DPMS(\s.*:|:)' | grep Off: | sed -E 's/.*Off:\s*([0-9]+).*/\1/'`
+    off=$(xset q | grep -A999 -E '^\s*DPMS(\s.*:|:)' | grep Off: | sed -E 's/.*Off:\s*([0-9]+).*/\1/')
     echo "$off" | grep -E '^[0-9]+$' >/dev/null || off=999
     test $off -gt $blank || off=$((blank+60))
     standby=$off
