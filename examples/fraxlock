@@ -28,7 +28,7 @@ if [ "$(tty | cut -c-8)" = "/dev/tty" ]; then
 	exit 1
     fi
 elif [ -n "$DISPLAY" ]; then
-    # ensure that we don't run multiple instances of this script on the same X-DISPLAY
+    # ensure that we don't run multiple instances of this script for the same X-DISPLAY
     # ( this will NOT prevent multiple instances if XSCREENLOCKER is set
     #   to lauch a locker that is runing as a background process )
     dHOST=${DISPLAY%%:*}
