@@ -8,9 +8,9 @@
 # This is free software created by frax@axnet.nu,
 # feel free to use, modify and/or distribute as you see fit.
 # 
+DEPS='fprintd-verify pgrep pkill ps sed setsid'
 fprintkill=${0##*/}
 _USAGE() {
-    DEPS='fprintd-verify pgrep pkill ps sed setsid'
     TPUTOK=1
     which tput>/dev/null 2>&1 && {
         TPUTOK=0
@@ -109,7 +109,7 @@ test -n "$1" && {
 }
 which "$FPK_EXEC">/dev/null 2>&1 || test -x "$FPK_EXEC" || USAGE
 
-lacking=
+lacking=''
 for x in $DEPS; do which $x>/dev/null || lacking="$lacking $x"; done
 test -n "$lacking" && {
     cat>/dev/stderr<<EOW
