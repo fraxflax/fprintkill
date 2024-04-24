@@ -1,5 +1,5 @@
 # fprintkill
-fprintkill is a POSIX-compliant (pure bourne shell) script that allows you to launch any executable and have it terminated by fingerprint... especially useful for screen-lockers that do not support fingerprint unlocking.
+fprintkill is a POSIX shell script that allows you to launch any executable and have it terminated by fingerprint... especially useful for screen-lockers that do not support fingerprint unlocking.
 
 I do like to use simple lightweight screen lockers like xtrlock or slock and have them launched by xautolock. They have low impact on the system and gives me full control to tweak exactly how I like them to work (have wrappers shutting off the screen, additional notify warnings before locking via yad, etc, etc).
 
