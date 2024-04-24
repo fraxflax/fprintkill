@@ -2,21 +2,29 @@
 #
 # https://github.com/fraxflax/fprintkill
 #
-# fprintkill is a POSIX-compliant (pure bourne shell) script for
-# launching an executable and be able to kill it by reading your
-# fingerprint.
+# fprintkill is a POSIX shell script for launching an executable and
+# be able to kill it by reading your fingerprint.
 # 
 # This is free software created by frax@axnet.nu,
 # feel free to use, modify and/or distribute as you see fit.
 # 
-fprintkill="`basename "$0" 2>/dev/null`" || fprintkill="fprintkill"
-USAGE() {
-    DEPS="fprintd-verify pgrep pkill ps sed setsid" 
-    COLS=72; ___=''; __=''; which tput>/dev/null && { COLS=`tput cols`; ___=`tput bold`; __=`tput sgr0`; }
+fprintkill=${0##*/}
+_USAGE() {
+    DEPS='fprintd-verify pgrep pkill ps sed setsid'
+    TPUTOK=1
+    which tput>/dev/null 2>&1 && {
+        TPUTOK=0
+        COLS=$(tput cols) 2>/dev/null || TPUTOK=$((TPUTOK+1))
+        _b_=$(tput bold)  2>/dev/null || TPUTOK=$((TPUTOK+1))
+        ___=$(tput smul)  2>/dev/null || TPUTOK=$((TPUTOK+1))
+        #__=$(tput sgr0)  2>/dev/null || TPUTOK=$((TPUTOK+1))
+        __=$(printf '\033[0m')
+    }
+    [ $TPUTOK -eq 0 ] || { COLS=72; _b_=''; ___=''; __=''; }
     FMT=cat;which fmt>/dev/null && FMT="fmt -w $COLS"
     $FMT<<EOU
 
-${___}SYNOPSIS:
+${_b_}SYNOPSIS:
 	$fprintkill$__ [ cmd [ arg ...] ]
 
 	Executes cmd [ arg ...] and for as long as cmd is running,
@@ -25,35 +33,35 @@ ${___}SYNOPSIS:
 	If no arguments are given to fprintkill, enviroment variables
 	FPK_EXEC and FPK_ARGS are used for cmd [ arg ...]
 
-${___}EXIT STATUS:$__
+${_b_}EXIT STATUS:$__
         $fprintkill exits with the same code as the cmd.  If cmd is
 	terminated after fingerprint verify, $fprintkill exits with
 	the SIGTERM exit code (143 in linux).
 
-${___}DEPENDENCIES:$__
+${_b_}DEPENDENCIES:$__
 	$fprintkill will always launch the cmd, but the fingerprint
 	termination depends on the following executables:
-${___}	$DEPS	$__
+${_b_}	$DEPS	$__
 	If they are not found in the path, a
 	warning will be printed to stderr but the cmd will still be
 	launched, even though it cannot be killed by fingerprint. (To
 	satisfy the dependencies in Debian/Ubuntu: apt install
 	util-linux procps sed fprintd util-linux).
 
-${___}EXAMPLES:$__
+${_b_}EXAMPLES:$__
 	Lock the screen with slock, terminating it upon verified
 	fingerprint:
-${___}	   $fprintkill slock	$__
+${_b_}	   $fprintkill slock	$__
 
 	Run '/usr/bin/xtrlock -b' in the background terminating it
 	upon verified fingerprint:
-${___}	   $fprintkill /usr/bin/xtrlock -b &	$__
+${_b_}	   $fprintkill /usr/bin/xtrlock -b &	$__
 
 	Alternative using environment variables:
-${___}	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &	$__
+${_b_}	   env FPK_EXEC=/usr/bin/xtrlock FPK_ARGS=-b $fprintkill &	$__
 
 	Arguments with whitespaces are ok:
-${___}	   $fprintkill sh -c "xset dpms force off ; xtrlock" &	$__
+${_b_}	   $fprintkill sh -c "xset dpms force off ; xtrlock" &	$__
 
 	Alternative using environment variables:
 	   env FPK_EXEC=sh FPK_ARGS='-c  "xset dpms force off ; xtrlock"' $fprintkill &	$__
@@ -61,14 +69,14 @@ ${___}	   $fprintkill sh -c "xset dpms force off ; xtrlock" &	$__
 	Also daemons are properly handled.  To launch xtrlock in the
 	background as a daemon that will be terminated upon verified
 	fingerprint:
-${___}	   $fprintkill xtrlock -f	$__
+${_b_}	   $fprintkill xtrlock -f	$__
 
 	In the case the cmd is a daemon spawning several parallel
 	processes (spawn) before exiting, all of the spawn will be
 	monitored and terminated upon verified fingerprint. Cleanup
 	will not be performed before all of the parallell processes
 	have exited or have been terminated. In this example:
-${___}	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0" 	$__
+${_b_}	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0" 	$__
 	... if proc1 exits, fprintkill will keep monitoring proc2 and
         proc3. If proc1, proc2 and proc3 all exits fprintkill will
         clean up. Upon verified fingerprint, proc1, proc2 and proc3
@@ -77,6 +85,19 @@ ${___}	   $fprintkill sh -c "proc1 & proc2 & proc3 & exit 0" 	$__
 EOU
     exit 1
 }
+USAGE() {
+    if which "$PAGER" >/dev/null 2>&1; then
+        LESS="$LESS -R"; export LESS # make sure less, if used, passes ANSI color escape sequences to terminal
+        _USAGE "$@" | "$PAGER"
+    elif which less >/dev/null 2>&1; then
+        _USAGE "$@" | less -R
+    elif which more >/dev/null 2>&1; then
+        _USAGE "$@" | more
+    else
+        _USAGE "$@"
+    fi
+}
+
 test -n "$1" && {
     FPK_EXEC="$1"
     FPK_ARGS=
@@ -99,6 +120,9 @@ The following executables are lacking in your PATH:
  $lacking
 preventing fingerprint killing from being performed.
 
+You need to EXIT YOUR APPLICATION BY OTHER MEANS!
+
+
 The full depencies (apart from coreutils) for fingerprint kill are:
   $DEPS
 (in debian/ubuntu: apt install util-linux procps sed fprintd )
@@ -113,10 +137,10 @@ EOW
 xpid=$$
 
 # Process group
-pgid=`ps -opgid= $xpid` || { echo "ERROR: ps: $!" > /dev/stderr; exit 1 ;}
+pgid=$(ps -opgid= $xpid) || { echo "ERROR: ps: $!" 1>&2 ; exit 1 ;}
 
 # Ensure we have a separate process group with $xpid as root
-test $xpid -eq $pgid || exec setsid sh $0 "$@"
+[ $xpid -eq $pgid ] || exec setsid sh $0 "$@"
 
 
 {   # --- Fork twice ---
@@ -128,9 +152,9 @@ test $xpid -eq $pgid || exec setsid sh $0 "$@"
 
     ps -opid= $xpid >/dev/null 2>&1 || { # cmd has exited 
 	# get pids of daemon spawn
-	GPIDS=`pgrep -g $pgid`
-	cpids=`echo $GPIDS | sed -E 's/[^ ]+ //'` # (first pid is `self`)
-	test "$cpids" = "$GPIDS" || xpid=$cpids
+	GPIDS=$(pgrep -g $pgid)
+	cpids=$(echo $GPIDS | sed -E 's/[^ ]+ //') # (first pid is `self`)
+	[ "$cpids" = "$GPIDS" ] || xpid=$cpids
     }
 	
     # Fork & do fprintd-verify for as long as cmd or spawn still alive
