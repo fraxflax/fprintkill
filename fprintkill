@@ -91,7 +91,7 @@ which "$FPK_EXEC">/dev/null 2>&1 || test -x "$FPK_EXEC" || USAGE
 lacking=
 for x in $DEPS; do which $x>/dev/null || lacking="$lacking $x"; done
 test -n "$lacking" && {
-    cat<<EOW>/dev/stderr
+    cat>/dev/stderr<<EOW
 
 WARNING!
 
