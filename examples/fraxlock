@@ -16,7 +16,7 @@
 
 [ "$(tty | cut -c-8)" = "/dev/tty" ] && {
     # we are on "real" tty-console ...
-    [ -z "$DISPLAY" ] || [ -s 0 ] && { 
+    [ -z "$DISPLAY" ] || [ -t 0 ] && { 
 	# we have no X-DISPLAY or the script is run interactively
 	# so let's lock the console rather than the X-DISPLAY
 	if which physlock >/dev/null; then 
