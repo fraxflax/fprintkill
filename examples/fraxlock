@@ -14,20 +14,25 @@
 # feel free to use, modify and/or distribute as you see fit.
 #
 
-if [ "$(tty | cut -c-8)" = "/dev/tty" ]; then
-    # we are on "real" console even though X might be running and DISPLAY is set
-    if which physlock >/dev/null; then 
-	physlock -sm || { C=$?; echo 'fraxlock ERROR! "physlock -sm" failed!' >/dev/stderr; exit $C ;}
+[ "$(tty | cut -c-8)" = "/dev/tty" ] && {
+    # we are on "real" tty-console ...
+    [ -z "$DISPLAY" ] || [ -s 0 ] && { 
+	# we have no X-DISPLAY or the script is run interactively
+	# so let's lock the console rather than the X-DISPLAY
+	if which physlock >/dev/null; then 
+	    physlock -sm || { C=$?; echo 'fraxlock ERROR! "physlock -sm" failed!' >&2; exit $C ;}
+	elif which vlock >/dev/null; then
+	    vlock -a || { C=$?; echo 'fraxlock ERROR! "vlock -a" failed!' >&2; exit $C ;}
+	    echo 'fraxlock WARNING! For full functionality: [ apt install physlock ]' >&2
+	else
+	    echo 'fraxlock ERROR! No executable console locker in path! [ apt install physlock vlock ]' >/dev/stderr
+	    exit 1
+	fi
 	exit 0
-    elif which vlock >/dev/null; then
-	vlock -a || { C=$?; echo 'fraxlock ERROR! "vlock -a" failed!' >/dev/stderr; exit $C ;}
-	echo 'fraxlock WARNING! For full functionality: [ apt install physlock ]' >/dev/stderr
-	exit 0
-    else
-	echo 'fraxlock ERROR! No executable console locker in path! [ apt install physlock vlock ]' >/dev/stderr
-	exit 1
-    fi
-elif [ -n "$DISPLAY" ]; then
+    }
+}
+
+if [ -n "$DISPLAY" ]; then
     # ensure that we don't run multiple instances of this script for the same X-DISPLAY
     # ( this will NOT prevent multiple instances if XSCREENLOCKER is set
     #   to lauch a locker that is runing as a background process )
