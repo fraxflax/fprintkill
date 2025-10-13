@@ -1,7 +1,7 @@
 # fprintkill
 fprintkill is a POSIX shell script that allows you to launch any executable and have it terminated by fingerprint... especially useful for screen-lockers that do not support fingerprint unlocking.
 
-I do like to use simple lightweight screen lockers like xtrlock or slock and have them launched by xautolock. They have low impact on the system and gives me full control to tweak exactly how I like them to work (have wrappers shutting off the screen, additional notify warnings before locking via yad, etc, etc).
+I do like to use simple lightweight screen lockers like xtrlock or slock and have them launched by xautolock. They have low impact on the system and gives me full control to tweak exactly how I like them to work (have wrappers shutting off the screen, additional warnings before locking as yad dialogs, etc, etc).
 
 BUT now that we have fingerprint readers on almost all laptops I also do want to be able to unlock my computer using that ... which those lockers do not support, not even via libpam-fprintd, so to fix that dilemma I wrote this small script fixing the problem.
 
