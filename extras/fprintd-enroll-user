@@ -22,8 +22,8 @@ else
 fi
 show_fingerprints() {
     clear; echo
-    local u=''
-    for u in $USERS; do fprintd-list $u | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
+    # local u='' ### Not all shells support local variables, so we use a uniquely named global variable here.
+    for usfp in $USERS; do fprintd-list $usfp | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
 }
 
 k=''

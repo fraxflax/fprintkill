@@ -1,6 +1,10 @@
 #!/bin/sh
-[ `id -u` -eq 0 -a -n "$SUDO_USER" ] || {
+[ $(id -u) -eq 0 ] || {
     exec sudo sh $0 "$USER"
+}
+[ "$SUDO_USER" ] || {
+    printf "\nUSAGE: Run this script as the user you want to change fingerprints for.\n\n"
+    exit 1
 }
 
 getkey() {
@@ -20,8 +24,8 @@ getkey() {
 }
 show_fingerprints() {
     clear; echo
-    local u=''
-    for u in root $SUDO_USER; do fprintd-list $u | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
+    #local u='' # local u='' ### Not all shells support local variables, so we use a uniquely named global variable here.
+    for usfp in root $SUDO_USER; do fprintd-list $usfp | grep -E '[Uu]ser\s|: (left|right)-'; echo; done
 }
 
 k=''
@@ -38,7 +42,8 @@ while [ -z "$k" ] ; do
     case "$k" in
 	q|Q) break ;;
 	1|2)
-	    user=$(echo $k | sed "s/1/root/;s/2/$SUDO_USER/")
+	    user=$(echo $k | sed 's/1/root/;s/2/$SUDO_USER/')
+	    user=$(eval "printf %s $user")
 	    FINGERPRINTS=$(fprintd-list $user | grep -oE '[0-9]: (right|left-).*' | cut -d' ' -f2)
 	    if [ -n "$FINGERPRINTS" ]; then
 		printf "\n\nEnrolling the following fingerprints for user '%s':\n" "$user"
@@ -56,7 +61,8 @@ while [ -z "$k" ] ; do
 	    k=''
 	    ;;
 	[3-6])
-	    user=$(echo $k | sed "s/[35]/root/;s/[46]/$SUDO_USER/")
+	    user=$(echo $k | sed 's/[35]/root/;s/[46]/$SUDO_USER/')
+	    user=$(eval "printf %s $user")
 	    [ "$k" = '2' -o "$k" = '3' ] && fprintd-delete $user
 	    k=''
 	    while [ "$k" != 'q' -a "$k" != 'Q' ]; do
